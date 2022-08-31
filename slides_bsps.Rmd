@@ -53,7 +53,7 @@ knitr::include_graphics("logo_UCL2.png")
 
 ```{r ellis, fig.cap="ELLIS project", out.width = '40%'}
 # logo needs to be both in wd and where .Rmd is located
-knitr::include_graphics("ellis.png")
+knitr::include_graphics("ellis.PNG")
 ```
 
 --
