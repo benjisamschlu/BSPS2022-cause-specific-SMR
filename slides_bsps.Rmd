@@ -1,0 +1,257 @@
+---
+title: "Quantifying spatial inequalities in cause-specific mortality"
+subtitle: "A Bayesian hierarchical spatial model estimating cause-specific SMRs for Belgian municipalities"
+author: "Benjamin Schlüter<br/>Bruno Masquelier"
+institute: "UCLouvain, DEMO"
+date: "07/09/2022"
+output:
+  xaringan::moon_reader:
+    seal: false
+    css: [default, default-fonts, "bss-theme.css"]
+    lib_dir: libs
+    self_contained: true
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+class: inverse, center, middle
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(fig.retina = 3, fig.width = 6, fig.asp = 0.618, out.width = "70%", fig.align = "center", warning = FALSE, message = FALSE, echo = FALSE)
+
+packages <- c("tidyverse", "ggplot2", "HMDHFDplus", "viridis", "scales",
+              "forecast", "cowplot", "RColorBrewer", "raster", "spdep",
+              "broom", "leaflet")
+invisible( lapply(packages, library, character.only = TRUE))
+
+```
+
+# Quantifying spatial inequalities in cause-specific mortality
+
+## A Bayesian hierarchical spatial model estimating cause-specific SMRs for Belgian municipalities
+
+.large[Benjamin Schlüter<br/>Martina Otavova<br/>Bruno Masquelier<br/>Brecht Devleesschauwer]
+
+<br/>
+
+.large[BSPS 2022 | 7 Sep 2022]
+
+<br/>
+
+```{r out.width = '30%'}
+# logo needs to be both in wd and where .Rmd is located
+knitr::include_graphics("logo_UCL2.png")
+```
+
+
+
+
+---
+
+# Context
+
+```{r ellis, fig.cap="ELLIS project", out.width = '40%'}
+# logo needs to be both in wd and where .Rmd is located
+knitr::include_graphics("ellis.png")
+```
+
+--
+
+.highlight[Methodological challenges:]
+
+* Index of multiple deprivation and environmental exposures `r fontawesome::fa("arrow-right")` small-scale
+  
+* Association might differ by cause of death
+
+--
+
+`r fontawesome::fa("arrow-right")` Cause-specific mortality estimates at small geographical level
+
+.center[`r fontawesome::fa("exclamation")` High stochasticity in death counts  `r fontawesome::fa("exclamation")`]
+ 
+ 
+???
+
+* Conceptual framework
+
+   * 3 dimensions to study environmental health inequalities
+   
+      * Socioeconomic deprivation
+      
+      * Environmental exposure
+      
+      * Health outcomes
+      
+Pairwise integration of these dimensions gives rise to three concepts
+
+   * Health inequalities
+   
+   * Environmental inequalities
+   
+   * Environmental health
+  
+Integration of all three: environmental health inequalities 
+
+
+
+
+---
+
+class: inverse, center, middle
+
+# Research questions:
+
+.left[
+# 1. Explore cause-specific mortality at the municipality level in Belgium
+
+# 2. Assess its association with index of multiple deprivation and environmental exposures
+]
+
+
+
+---
+
+# Data
+
+### Cause-specific mortality rates 
+
+* Aggregate-level data from Belgian national civil register 
+
+* Cause of death certificates 
+
+* 13 broad causes of death (based on ICD10 codes)
+
+`r fontawesome::fa("arrow-right")` Cause-specific death counts and exposures by 5 year age group, sex and municipality over 2006-2016
+
+### Covariates
+
+* Belgian index of multiple deprivation 2011 (Martina's paper)
+
+* Environmental exposures (in development)
+
+
+---
+
+# Methodology
+
+.pull-left[
+### Standardized Mortality Ratios
+
+Municipality $i$, gender $s$ and CoD $a$,
+
+$SMR^{i} = \frac{obs.~deaths^{{i}}}{exp.~deaths^{{i}}}$
+
+$exp.~deaths^{i} = \sum{}_nm_x^{Nat} \cdot {}_nE_x^{i}$
+
+<br/>
+
+<br/>
+
+`r fontawesome::fa("plus")` Age structure
+
+`r fontawesome::fa("plus")` Relative measure
+
+`r fontawesome::fa("minus")` .highlight[Dominated by __sampling variability__]
+
+]
+
+--
+
+.pull-right[
+### BYM2 Poisson model
+
+Municipality $i$, gender $s$ and CoD $a$,
+
+$obs.~deaths^{i} \sim Poi(\theta^{i} \cdot exp.~deaths^{i})$
+
+$log(\theta_i) = \mu + x_i\beta + \phi_i + u_i$
+
+$\phi_i ~ from ~ ICAR ~ model$
+
+$u_i \sim N(0, \sigma_u^2)$
+
+<br/>
+
+`r fontawesome::fa("plus")` Covariates
+
+`r fontawesome::fa("plus")` .highlight[__Smoothing__ SMRs with hierachical model]
+]
+
+
+???
+
+* Combine two elements
+
+* Raw SMRs
+
+
+
+
+---
+class: inverse, center, middle
+
+# Preliminar results
+
+
+
+
+---
+
+# Raw SMRs
+
+
+
+
+---
+
+# Different spatial pattern by CoD
+
+
+
+
+---
+
+# High uncertainty
+
+
+
+
+---
+
+# Comparison of variances
+
+
+
+
+---
+
+# Association with BIMD
+
+
+
+
+---
+
+# Next steps
+
+# Limitations
+
+* Ecological associations 
+
+
+---
+class: inverse, center, middle
+
+# Thank you for your attention !
+
+<br/>
+<br/>
+
+.left[
+`r fontawesome::fa("at")` .link-email[[benjamin-samuel.schluter@uclouvain.be](benjamin-samuel.schluter@uclouvain.be)]
+
+`r fontawesome::fa("slideshare")` .link-email[[Slides]()]
+
+`r fontawesome::fa("github")` .link-email[[@benjisamschlu](https://github.com/benjisamschlu)]
+]
