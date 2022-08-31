@@ -251,7 +251,7 @@ class: inverse, center, middle
 .left[
 `r fontawesome::fa("at")` .link-email[[benjamin-samuel.schluter@uclouvain.be](benjamin-samuel.schluter@uclouvain.be)]
 
-`r fontawesome::fa("slideshare")` .link-email[[Slides]()]
+`r fontawesome::fa("slideshare")` .link-email[[http://benjisamschlu.github.io/BSPS2022-cause-specific-SMR/slides.html](http://benjisamschlu.github.io/BSPS2022-cause-specific-SMR/slides.html)]
 
 `r fontawesome::fa("github")` .link-email[[@benjisamschlu](https://github.com/benjisamschlu)]
 ]
