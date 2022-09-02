@@ -56,21 +56,7 @@ knitr::include_graphics("logo_UCL2.png")
 knitr::include_graphics("ellis.PNG")
 ```
 
---
 
-.highlight[Methodological challenges:]
-
-* Index of multiple deprivation and environmental exposures `r fontawesome::fa("arrow-right")` small-scale
-  
-* Association might differ by cause of death
-
---
-
-`r fontawesome::fa("arrow-right")` Cause-specific mortality estimates at small geographical level
-
-.center[`r fontawesome::fa("exclamation")` High stochasticity in death counts  `r fontawesome::fa("exclamation")`]
- 
- 
 ???
 
 * Conceptual framework
@@ -93,6 +79,20 @@ Pairwise integration of these dimensions gives rise to three concepts
   
 Integration of all three: environmental health inequalities 
 
+--
+
+.highlight[Methodological challenges:]
+
+* Index of multiple deprivation and environmental exposures `r fontawesome::fa("arrow-right")` small-scale
+  
+* Association might differ by cause of death
+
+--
+
+`r fontawesome::fa("arrow-right")` Cause-specific mortality estimates at small geographical level
+
+.center[`r fontawesome::fa("exclamation")` High stochasticity in death counts  `r fontawesome::fa("exclamation")`]
+ 
 
 
 
@@ -105,7 +105,7 @@ class: inverse, center, middle
 .left[
 # 1. Explore cause-specific mortality at the municipality level in Belgium
 
-# 2. Assess its association with index of multiple deprivation and environmental exposures
+# 2. Assess its association with Belgian index of multiple deprivation and environmental exposures
 ]
 
 
@@ -118,9 +118,9 @@ class: inverse, center, middle
 
 * Aggregate-level data from Belgian national civil register 
 
-* Cause of death certificates 
+* Cause of death certificates (ICD10 classification) 
 
-* 13 broad causes of death (based on ICD10 codes)
+   * Aggregated into 13 broad causes of death 
 
 `r fontawesome::fa("arrow-right")` Cause-specific death counts and exposures by 5 year age group, sex and municipality over 2006-2016
 
@@ -198,7 +198,128 @@ class: inverse, center, middle
 
 ---
 
-# Raw SMRs
+# National cause-specific mortality rates
+
+```{r nat_mx, out.width = "110%"}
+# Load data
+df <- readRDS("../../server/out/df_bym2.rda")
+
+# Period considered
+period <- 2006:2016
+# Ages considered
+ages <- as.character(c(1, seq(5, 95, 5)))
+
+df.nat <- df %>% 
+        filter(year %in% period,
+               # premature mortality 1-74
+               age %in% ages,
+               # Breast cancer considered only for female
+               !(sex == "m" & ICD_gp == "Breast_cancer")) %>% 
+        group_by(age, sex, ICD_gp) %>% 
+        summarise(dth = sum(dth),
+                  exp = sum(exp)) %>% 
+        ungroup() %>%
+        mutate(mx = dth/exp)
+
+library(directlabels)
+df.nat %>% 
+        mutate(sex = ifelse(sex == "f", "female", "male"),
+               ICD_gp = gsub("_", " ", ICD_gp),
+               age = as.character(age) %>% as.numeric()) %>% 
+        filter(ICD_gp != "Other causes") %>% 
+        ggplot(aes(x = age, y = mx, group = ICD_gp)) +
+        facet_wrap(~ sex) +
+        geom_line(aes(color = ICD_gp), size = 1.5) +
+        geom_dl(aes(label = ICD_gp, col = ICD_gp), 
+                method = list(dl.combine("last.bumpup"), cex = 0.6)) +
+        scale_colour_viridis_d(guide="none") +
+        theme_bw() +
+        theme(legend.position = "bottom",
+              axis.title.x = element_blank(),
+              plot.title = element_text(hjust = 0.5, face = "bold"),
+              strip.text = element_text(size = 13, face = "bold")
+              ) +
+        scale_y_log10(expand=expansion(add = c(0, 6e-01))) +
+        scale_x_continuous(expand=expansion(add = c(0, 70)),
+                           limits = c(1, 95), breaks = c(1, seq(15, 75, 15), 95)) +
+        labs(y = expression(" "[n] * "M"[x] * " (log-scale)",),
+             x = "Age") 
+
+```
+
+
+
+
+---
+
+# Raw cause-specific SMRs
+
+```{r raw_smr, out.width = "100%"}
+df.smr <- df %>% 
+        filter( # Aggregate over 9 y period 2007-2015
+                year %in% period,
+                # only premature mortality 1-74 ?
+                age %in% ages,
+                !(sex == "m" & ICD_gp == "Breast_cancer")) %>% 
+        mutate(age = droplevels(age)) %>% 
+        # Compute national CoD mortality
+        group_by(age, sex, ICD_gp,
+                 .drop = FALSE)  %>% 
+        mutate(D = sum(dth),
+               E = sum(exp), 
+               Mx = D/E) %>% 
+        ungroup() %>% 
+        # Apply national level mortality
+        mutate(exp_dth = Mx*exp) %>% 
+        group_by(ICD_gp, sex, comm,
+                 .drop = FALSE) %>% 
+        summarise(obs_dth = sum(dth),
+                  exp_dth = sum(exp_dth)) %>% 
+        ungroup() %>% 
+        mutate(smr = obs_dth/exp_dth)
+
+df.smr %>% 
+        filter(comm != "73028") %>% 
+        ggplot(aes(x = log(exp_dth), y = smr, col = sex)) +
+        facet_wrap(~ ICD_gp, scales = "free") +
+        geom_point(alpha = 0.2) +
+        scale_color_viridis_d(option = "E", begin = 0.1, end = 0.8) +
+        theme_bw() +
+        theme(legend.position = c(0.7, 0.1),
+              legend.direction = "horizontal") +
+  labs(y = "SMR",
+       x = "Expected deaths (log-scale)") 
+```
+
+
+
+---
+
+# Different spatial pattern by CoD
+
+```{r map_cardio_m}
+knitr::include_graphics("../../figures/maps/Cardiovascular_diseases_m.png")
+```
+
+
+
+---
+
+# Different spatial pattern by CoD
+
+```{r map_cerebro_m}
+knitr::include_graphics("../../figures/maps/Cerebrovascular_diseases_and_HTA_m.png")
+```
+
+
+
+---
+
+# Different spatial pattern by CoD
+
+```{r map_lung_m}
+knitr::include_graphics("../../figures/maps/Lung_cancer_m.png")
+```
 
 
 
@@ -207,6 +328,21 @@ class: inverse, center, middle
 
 # Different spatial pattern by CoD
 
+```{r map_non_transport_m}
+knitr::include_graphics("../../figures/maps/Non_transport_accidents_m.png")
+```
+
+
+
+
+---
+
+# Posterior probability of exceedance
+
+```{r map_exc_p_lung_f}
+knitr::include_graphics("../../figures/maps/exceedance_prob_lung_cancer_f.png")
+```
+
 
 
 
@@ -214,13 +350,47 @@ class: inverse, center, middle
 
 # High uncertainty
 
+```{r credible intervals, out.width = "100%"}
+df.smr.cardio <- readRDS("../../server/out/estimates/df_smr_Cardiovascular_diseases_f.rda")
+
+df.smr.cardio %>% 
+        ggplot(aes(y = fct_reorder(comm, median))) +
+        # geom_pointrange(aes(x=median, xmin=lower, xmax=upper)) +
+        geom_linerange(aes(xmin = lower95, xmax = upper95), 
+                       col = "skyblue1", alpha = 0.3) +
+        geom_point(aes(x = median), col = "skyblue3") +
+        geom_vline(xintercept = 1, linetype = "dashed") +
+        theme_bw() +
+        theme(axis.text.y = element_blank(),
+              axis.ticks.y = element_blank()) +
+        labs(y = "Commune",
+             x = "SMR")
+
+```
 
 
 
 ---
 
-# Comparison of variances
+# Comparison of SMR variances
 
+```{r var_com, out.width = "100%"}
+df.sigma <- readRDS("../../estimates/df_sigma.rda")
+
+df.sigma %>% 
+        mutate(across(lower95:upper95, ~ exp(.x)),
+               ICD_gp = gsub("_", " ", ICD_gp)) %>% 
+        filter(model == "BYM2 no bimd") %>% 
+        ggplot(aes(y = fct_reorder(ICD_gp, median))) +
+        geom_pointrange(aes(x=median, xmin=lower95, xmax=upper95, col = sex),
+                        position = position_dodge(width = 0.55)) +
+        theme_bw() +
+        theme(legend.position = c(0.8, 0.3),
+              axis.title.y = element_blank()) +
+        scale_color_viridis_d(begin = 0, end = 0.5) +
+        labs(x = "SMR total variance",
+             col = "Gender") 
+```
 
 
 
@@ -238,6 +408,8 @@ class: inverse, center, middle
 # Limitations
 
 * Ecological associations 
+
+* Broad time window
 
 
 ---
