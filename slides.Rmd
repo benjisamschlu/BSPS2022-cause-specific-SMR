@@ -114,7 +114,7 @@ class: inverse, center, middle
 
 # Data
 
-### Cause-specific mortality rates 
+### Cause-specific mortality  
 
 * Aggregate-level data from Belgian national civil register 
 
@@ -122,11 +122,11 @@ class: inverse, center, middle
 
    * Aggregated into 13 broad causes of death 
 
-`r fontawesome::fa("arrow-right")` Cause-specific death counts and exposures by 5 year age group, sex and municipality over 2006-2016
+`r fontawesome::fa("arrow-right")` Cause-specific death counts and exposures by 5 year age group (1, 5, 10, ..., 95+), sex and municipality (589) aggregated over 2006-2016
 
 ### Covariates
 
-* Belgian index of multiple deprivation 2011 (Martina's paper)
+* Belgian index of multiple deprivation (BIMD) 2011 (M. Otavova et al.)
 
 * Environmental exposures (in development)
 
@@ -142,7 +142,7 @@ Municipality $i$, gender $s$ and CoD $a$,
 
 $SMR^{i} = \frac{obs.~deaths^{{i}}}{exp.~deaths^{{i}}}$
 
-$exp.~deaths^{i} = \sum{}_nm_x^{Nat} \cdot {}_nE_x^{i}$
+$exp.~deaths^{i} = \sum{}_nM_x^{Nat} \cdot {}_nE_x^{i}$
 
 <br/>
 
@@ -165,9 +165,9 @@ Municipality $i$, gender $s$ and CoD $a$,
 
 $obs.~deaths^{i} \sim Poi(\theta^{i} \cdot exp.~deaths^{i})$
 
-$log(\theta_i) = \mu + x_i\beta + \phi_i + u_i$
+$log(\theta_i) = \mu + \boldsymbol{x_i\beta} + \phi_i + u_i$
 
-$\phi_i ~ from ~ ICAR ~ model$
+$\phi_i \sim ICAR ~ model$
 
 $u_i \sim N(0, \sigma_u^2)$
 
@@ -242,10 +242,17 @@ df.nat %>%
         scale_y_log10(expand=expansion(add = c(0, 6e-01))) +
         scale_x_continuous(expand=expansion(add = c(0, 70)),
                            limits = c(1, 95), breaks = c(1, seq(15, 75, 15), 95)) +
-        labs(y = expression(" "[n] * "M"[x] * " (log-scale)",),
+        labs(y = expression(" "[n] * "M"[x]^{"Nat"} * " (log-scale)",),
              x = "Age") 
 
 ```
+
+$$exp.~deaths^{i} = \sum{}_nM_x^{Nat} \cdot {}_nE_x^{i}$$
+
+
+???
+
+* Show burden of 13 broad causes of death
 
 
 
@@ -278,26 +285,35 @@ df.smr <- df %>%
         ungroup() %>% 
         mutate(smr = obs_dth/exp_dth)
 
+ICD_gp.sel <- c("Alcohol_related", "Cardiovascular_diseases", 
+                "Lung_cancer", "Colorectal_cancer")
 df.smr %>% 
-        filter(comm != "73028") %>% 
+        filter(comm != "73028",
+               ICD_gp %in% ICD_gp.sel) %>% 
+        mutate(sex = ifelse(sex == "f", "female", "male"),
+               ICD_gp = gsub("_", " ", ICD_gp)) %>% 
         ggplot(aes(x = log(exp_dth), y = smr, col = sex)) +
         facet_wrap(~ ICD_gp, scales = "free") +
         geom_point(alpha = 0.2) +
         scale_color_viridis_d(option = "E", begin = 0.1, end = 0.8) +
         theme_bw() +
-        theme(legend.position = c(0.7, 0.1),
+        theme(legend.position = "top",
               legend.direction = "horizontal") +
   labs(y = "SMR",
-       x = "Expected deaths (log-scale)") 
+       x = "Expected deaths (log-scale)",
+       col = "Gender") 
 ```
+
+* High SMR for low expected deaths $\propto$ pop. size `r fontawesome::fa("arrow-right")` sampling variability
+
 
 
 
 ---
 
-# Different spatial pattern by CoD
+# Cardiovascular diseases, male
 
-```{r map_cardio_m}
+```{r map_cardio_m, out.width = "90%"}
 knitr::include_graphics("../../figures/maps/Cardiovascular_diseases_m.png")
 ```
 
@@ -305,52 +321,65 @@ knitr::include_graphics("../../figures/maps/Cardiovascular_diseases_m.png")
 
 ---
 
-# Different spatial pattern by CoD
+# Cerebrovascular diseases and HTA, male
 
-```{r map_cerebro_m}
+```{r map_cerebro_m, out.width = "90%"}
 knitr::include_graphics("../../figures/maps/Cerebrovascular_diseases_and_HTA_m.png")
 ```
 
 
 
----
-
-# Different spatial pattern by CoD
-
-```{r map_lung_m}
-knitr::include_graphics("../../figures/maps/Lung_cancer_m.png")
-```
-
-
-
 
 ---
 
-# Different spatial pattern by CoD
+# Non transport accidents, male
 
-```{r map_non_transport_m}
+```{r map_non_transport_m, out.width = "90%"}
 knitr::include_graphics("../../figures/maps/Non_transport_accidents_m.png")
 ```
 
 
+???
+
+* Different spatial pattern across cause of death
 
 
 ---
 
-# Posterior probability of exceedance
+# Lung cancer, female
+
+```{r map_lung_m, out.width = "90%"}
+knitr::include_graphics("../../figures/maps/Lung_cancer_f.png")
+```
+
+
+???
+
+* What about uncertainty? `r fontawesome::fa("arrow-right")` Posterior prob. of exceedance
+
+
+
+
+---
+
+# Posterior probability of exceedance 
+
+### Lung cancer, female
 
 ```{r map_exc_p_lung_f}
 knitr::include_graphics("../../figures/maps/exceedance_prob_lung_cancer_f.png")
 ```
 
+* Interesting metric to identify and target municipalities
+
 
 
 
 ---
 
-# High uncertainty
+# Cardiovascular diseases, female
 
-```{r credible intervals, out.width = "100%"}
+```{r credible intervals, out.width = "95%"}
 df.smr.cardio <- readRDS("../../server/out/estimates/df_smr_Cardiovascular_diseases_f.rda")
 
 df.smr.cardio %>% 
@@ -362,54 +391,144 @@ df.smr.cardio %>%
         geom_vline(xintercept = 1, linetype = "dashed") +
         theme_bw() +
         theme(axis.text.y = element_blank(),
-              axis.ticks.y = element_blank()) +
-        labs(y = "Commune",
-             x = "SMR")
+              axis.ticks.y = element_blank(),
+              panel.grid.major = element_blank(), 
+              panel.grid.minor = element_blank()) +
+        labs(y = "Municipality",
+             x = "SMR") +
+        annotate(geom = "point", x = 1.4, y = 200, col = "skyblue3") +
+        annotate(geom = "text", x = 1.42, y = 200, hjust = 0,
+                 label = "Posterior median") +
+        annotate(geom = "segment", 
+                 x = 1.39, xend = 1.41, y = 170, yend = 170, 
+                 col = "skyblue1") +
+        annotate(geom = "text", x = 1.42, y = 170, hjust = 0,
+                 label = "95% Credible interval") 
+  
+
+  
 
 ```
 
 
+* Difficult to differentiate between municipalities except between the extremes
 
 ---
 
-# Comparison of SMR variances
+# Cause-specific SMR variances
 
-```{r var_com, out.width = "100%"}
+```{r var_comp, out.width = "100%"}
 df.sigma <- readRDS("../../estimates/df_sigma.rda")
 
-df.sigma %>% 
+df.sigma %>%
         mutate(across(lower95:upper95, ~ exp(.x)),
-               ICD_gp = gsub("_", " ", ICD_gp)) %>% 
-        filter(model == "BYM2 no bimd") %>% 
+               ICD_gp = gsub("_", " ", ICD_gp),
+               sex = ifelse(sex == "f", "female", "male")) %>%
+        filter(model == "BYM2 no bimd",
+               ICD_gp != "Other causes") %>%
         ggplot(aes(y = fct_reorder(ICD_gp, median))) +
         geom_pointrange(aes(x=median, xmin=lower95, xmax=upper95, col = sex),
                         position = position_dodge(width = 0.55)) +
         theme_bw() +
-        theme(legend.position = c(0.8, 0.3),
+        theme(legend.position = c(0.75, 0.3),
               axis.title.y = element_blank()) +
         scale_color_viridis_d(begin = 0, end = 0.5) +
-        labs(x = "SMR total variance",
-             col = "Gender") 
+        labs(x = "Variance",
+             col = "Gender")
+
+ 
+
 ```
 
 
 
----
-
-# Association with BIMD
-
-
-
 
 ---
 
-# Next steps
+# Ecological association with BIMD
+
+```{r bimd, out.width = "100%"}
+
+CoDs <- unique(df.smr$ICD_gp)
+df.beta <- data.frame()
+
+# Exctract beta1 and store in df
+for (c in CoDs) {
+  for (sx in c("m", "f")) {
+    if (!(c == "Breast_cancer" & sx == "m")) {
+      
+      
+      beta1 <- readRDS(paste0("../../server/out/estimates/beta1_", c, "_", sx,  ".rda"))
+      temp <- data.frame(ICD_gp = c,
+                         sex = sx,
+                         median = beta1[2],
+                         lower95 = beta1[1],
+                         upper95 = beta1[3])
+      df.beta <- rbind(df.beta, temp)
+    }
+  }
+}
+df.beta %>% 
+  filter(ICD_gp != "Other causes") %>% 
+  mutate(sign = ifelse(lower95 > 1 & upper95 > 1 |
+                       lower95 < 1 & upper95 < 1, "yes", "no"),
+         ICD_gp = gsub("_", " ", ICD_gp),
+         across(median:upper95, ~ (.x-1)*100),
+         sex = ifelse(sex == "f", "female", "male")) %>% 
+  ggplot(aes(y = fct_reorder(ICD_gp, median))) +
+        geom_pointrange(aes(x=median, xmin=lower95, xmax=upper95, col =  sex),
+                        position = position_dodge(width = 0.55)) +
+        geom_vline(xintercept = 0, linetype = "dashed") +
+        theme_bw() +
+        theme(legend.position = c(0.75, 0.3),
+              axis.title.y = element_blank()) +
+        scale_color_viridis_d(begin = 0, end = 0.5) +
+        labs(x = "% increase in SMR by point increase in BIMD score",
+             col = "Gender")
+  
+
+
+# df.sigma %>% 
+#         mutate(across(lower95:upper95, ~ exp(.x)),
+#                ICD_gp = gsub("_", " ", ICD_gp),
+#                sex = ifelse(sex == "f", "female", "male")) %>% 
+#         filter(model != "Poisson-Lognormal") %>% 
+#   ggplot(aes(y = fct_reorder(ICD_gp, median))) +
+#   facet_wrap(~ sex) +
+#   geom_pointrange(aes(x=median, xmin=lower95, xmax=upper95, col = model),
+#                         position = position_dodge(width = 0.55)) +
+#         theme_bw() +
+#         theme(legend.position = c(0.35, 0.3),
+#               axis.title.y = element_blank()) +
+#         scale_color_viridis_d(begin = 0.4, end = 0.8) +
+#         labs(x = "Variance",
+#              col = "Model")
+
+```
+
+
+???
+
+* For every point increase in deprivation score, the relative risk increases by x%
+
+
+---
 
 # Limitations
 
 * Ecological associations 
 
 * Broad time window
+
+* Death classification at old ages
+
+# Next steps
+
+* Incorporate environmental exposures
+
+* Sensitivity analysis (prior, time window)
+
+
 
 
 ---
