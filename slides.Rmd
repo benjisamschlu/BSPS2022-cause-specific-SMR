@@ -84,7 +84,7 @@ Integration of all three: environmental health inequalities
 
 .highlight[Methodological challenges:]
 
-* Index of multiple deprivation and environmental stressors `r fontawesome::fa("arrow-right")` small-scale
+* Socio-economic deprivation and environmental stressors `r fontawesome::fa("arrow-right")` small-scale
   
 * Associations might differ by cause of death
 
@@ -106,7 +106,7 @@ class: inverse, center, middle
 .left[
 # 1. Explore cause-specific mortality at the municipality level in Belgium
 
-# 2. Assess its association with Belgian index of multiple deprivation and environmental exposures
+# 2. Assess its association with socio-economic deprivation and environmental stressors
 ]
 
 
@@ -127,9 +127,9 @@ class: inverse, center, middle
 
 ### Covariates
 
-* Belgian index of multiple deprivation (BIMD) 2011 
-
 * Environmental stressors (noise, air pollution, ...)
+
+* Belgian index of multiple deprivation (BIMD) 2011 
 
 
 
@@ -138,12 +138,27 @@ class: inverse, center, middle
 
 # Belgian index of multiple deprivation (BIMD)
 
-```{r bimd_logo, out.width = '70%'}
+.pull-left[
+```{r bimd_logo, out.width = "100%"}
 # logo needs to be both in wd and where .Rmd is located
 knitr::include_graphics("BIMD.PNG")
 ```
+]
 
-`r fontawesome::fa("arrow-right")` M. Otavova et al. (forthcoming)
+.pull-right[
+
+<br/>
+
+<br/>
+
+`r fontawesome::fa("arrow-right")` __M. Otavova et al.__ (forthcoming)
+]
+
+<br/>
+
+* BIMD score (without health domain) of each municipality in 2011 
+
+
 
 
 ---
@@ -545,7 +560,7 @@ df.beta %>%
 
 * Broad time window
 
-* Poor classification of CoD at old ages
+* Poor classification of causes of death at old ages
 
 * Regional differences in certifying/coding practices
 
