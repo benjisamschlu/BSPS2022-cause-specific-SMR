@@ -417,7 +417,7 @@ knitr::include_graphics("../../figures/maps/exceedance_prob_lung_cancer_f.png")
 
 # Cardiovascular diseases, female
 
-```{r credible intervals, out.width = "95%"}
+```{r credible_intervals, out.width = "95%"}
 df.smr.cardio <- readRDS("../../server/out/estimates/df_smr_Cardiovascular_diseases_f.rda")
 
 df.smr.cardio %>% 
@@ -525,24 +525,6 @@ df.beta %>%
         scale_color_viridis_d(begin = 0, end = 0.5) +
         labs(x = "% increase in SMR by point increase in BIMD score",
              col = "Gender")
-  
-
-
-# df.sigma %>% 
-#         mutate(across(lower95:upper95, ~ exp(.x)),
-#                ICD_gp = gsub("_", " ", ICD_gp),
-#                sex = ifelse(sex == "f", "female", "male")) %>% 
-#         filter(model != "Poisson-Lognormal") %>% 
-#   ggplot(aes(y = fct_reorder(ICD_gp, median))) +
-#   facet_wrap(~ sex) +
-#   geom_pointrange(aes(x=median, xmin=lower95, xmax=upper95, col = model),
-#                         position = position_dodge(width = 0.55)) +
-#         theme_bw() +
-#         theme(legend.position = c(0.35, 0.3),
-#               axis.title.y = element_blank()) +
-#         scale_color_viridis_d(begin = 0.4, end = 0.8) +
-#         labs(x = "Variance",
-#              col = "Model")
 
 ```
 
